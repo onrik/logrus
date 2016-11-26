@@ -3,6 +3,7 @@ package filename
 import (
 	"fmt"
 	"runtime"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 )
@@ -12,26 +13,44 @@ type Hook struct {
 	levels []logrus.Level
 }
 
-func NewHook(levels ...logrus.Level) *Hook {
-	return &Hook{
-		Field:  "source",
-		levels: levels,
-	}
-}
-
 func (hook *Hook) Levels() []logrus.Level {
 	return hook.levels
 }
 
 func (hook *Hook) Fire(entry *logrus.Entry) error {
-	entry.Data[hook.Field] = getCaller()
+	entry.Data[hook.Field] = findCaller()
 	return nil
 }
 
-func getCaller() string {
-	_, file, line, ok := runtime.Caller(5)
+func NewHook(levels ...logrus.Level) *Hook {
+	hook := Hook{
+		Field:  "source",
+		levels: levels,
+	}
+	if len(hook.levels) == 0 {
+		hook.levels = logrus.AllLevels
+	}
+
+	return &hook
+}
+
+func findCaller() string {
+	file := ""
+	line := 0
+	skip := 5
+	for i := 0; i < 10; i++ {
+		file, line = getCaller(skip + i)
+		if !strings.HasPrefix(file, "logrus") {
+			break
+		}
+	}
+	return fmt.Sprintf("%s:%d", file, line)
+}
+
+func getCaller(skip int) (string, int) {
+	_, file, line, ok := runtime.Caller(skip)
 	if !ok {
-		return ""
+		return "", 0
 	}
 
 	n := 0
@@ -45,6 +64,5 @@ func getCaller() string {
 		}
 	}
 
-	return fmt.Sprintf("%s:%d", file, line)
-
+	return file, line
 }
