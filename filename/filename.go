@@ -8,11 +8,13 @@ import (
 )
 
 type Hook struct {
+	Field  string
 	levels []logrus.Level
 }
 
 func NewHook(levels ...logrus.Level) *Hook {
 	return &Hook{
+		Field:  "source",
 		levels: levels,
 	}
 }
@@ -22,7 +24,7 @@ func (hook *Hook) Levels() []logrus.Level {
 }
 
 func (hook *Hook) Fire(entry *logrus.Entry) error {
-	entry.Data["filename"] = getCaller()
+	entry.Data[hook.Field] = getCaller()
 	return nil
 }
 
