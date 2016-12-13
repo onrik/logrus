@@ -1,6 +1,8 @@
 package sentry
 
 import (
+	"net/http"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/getsentry/raven-go"
 )
@@ -16,9 +18,16 @@ var (
 	}
 )
 
+const (
+	HttpRequestField = "http_request"
+	StacktaceField   = "stacktrace"
+)
+
 type Hook struct {
-	client *raven.Client
-	levels []logrus.Level
+	client           *raven.Client
+	levels           []logrus.Level
+	HttpRequestField string
+	StacktaceField   string
 }
 
 func (hook *Hook) Levels() []logrus.Level {
@@ -27,15 +36,25 @@ func (hook *Hook) Levels() []logrus.Level {
 
 func (hook *Hook) Fire(entry *logrus.Entry) error {
 	culprit := ""
+	interfaces := []raven.Interface{&raven.Message{entry.Message, nil}}
 	if err, ok := entry.Data[logrus.ErrorKey].(error); ok {
 		culprit = err.Error()
 		entry.Data[logrus.ErrorKey] = culprit
+	}
+	if httpRequest, ok := entry.Data[hook.HttpRequestField].(*http.Request); ok {
+		interfaces = append(interfaces, raven.NewHttp(httpRequest))
+		delete(entry.Data, hook.HttpRequestField)
+	}
+
+	if stacktrace, ok := entry.Data[hook.StacktaceField].(*raven.Stacktrace); ok {
+		interfaces = append(interfaces, stacktrace)
+		delete(entry.Data, hook.StacktaceField)
 	}
 
 	packet := &raven.Packet{
 		Message:    entry.Message,
 		Level:      levelsMap[entry.Level],
-		Interfaces: []raven.Interface{&raven.Message{entry.Message, nil}},
+		Interfaces: interfaces,
 		Extra:      entry.Data,
 		Culprit:    culprit,
 	}
@@ -71,8 +90,10 @@ func NewHook(dsn string, levels ...logrus.Level) *Hook {
 	}
 
 	hook := Hook{
-		client: client,
-		levels: levels,
+		client:           client,
+		levels:           levels,
+		HttpRequestField: HttpRequestField,
+		StacktaceField:   StacktaceField,
 	}
 	if len(hook.levels) == 0 {
 		hook.levels = logrus.AllLevels
