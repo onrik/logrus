@@ -1,6 +1,7 @@
 package sentry
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -19,15 +20,14 @@ var (
 )
 
 const (
-	HttpRequestField = "http_request"
-	StacktaceField   = "stacktrace"
+	SentryField = "sentry"
 )
 
 type Hook struct {
-	client           *raven.Client
-	levels           []logrus.Level
-	HttpRequestField string
-	StacktaceField   string
+	client      *raven.Client
+	levels      []logrus.Level
+	Async       bool
+	SentryField string
 }
 
 func (hook *Hook) Levels() []logrus.Level {
@@ -36,19 +36,17 @@ func (hook *Hook) Levels() []logrus.Level {
 
 func (hook *Hook) Fire(entry *logrus.Entry) error {
 	culprit := ""
-	interfaces := []raven.Interface{&raven.Message{entry.Message, nil}}
-	if err, ok := entry.Data[logrus.ErrorKey].(error); ok {
-		culprit = err.Error()
+	interfaces := []raven.Interface{
+		&raven.Message{Message: entry.Message},
+	}
+	if err, ok := entry.Data[logrus.ErrorKey]; ok && err != nil {
+		culprit = fmt.Sprintf("%s", err)
 		entry.Data[logrus.ErrorKey] = culprit
 	}
-	if httpRequest, ok := entry.Data[hook.HttpRequestField].(*http.Request); ok {
-		interfaces = append(interfaces, raven.NewHttp(httpRequest))
-		delete(entry.Data, hook.HttpRequestField)
-	}
 
-	if stacktrace, ok := entry.Data[hook.StacktaceField].(*raven.Stacktrace); ok {
-		interfaces = append(interfaces, stacktrace)
-		delete(entry.Data, hook.StacktaceField)
+	if intfs, ok := entry.Data[hook.SentryField].([]raven.Interface); ok {
+		interfaces = append(interfaces, intfs...)
+		delete(entry.Data, hook.SentryField)
 	}
 
 	packet := &raven.Packet{
@@ -60,7 +58,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 	}
 
 	_, ch := hook.client.Capture(packet, map[string]string{})
-	if entry.Level == logrus.FatalLevel || entry.Level == logrus.PanicLevel {
+	if !hook.Async || entry.Level == logrus.FatalLevel || entry.Level == logrus.PanicLevel {
 		return <-ch
 	}
 
@@ -90,14 +88,39 @@ func NewHook(dsn string, levels ...logrus.Level) *Hook {
 	}
 
 	hook := Hook{
-		client:           client,
-		levels:           levels,
-		HttpRequestField: HttpRequestField,
-		StacktaceField:   StacktaceField,
+		client:      client,
+		levels:      levels,
+		Async:       true,
+		SentryField: SentryField,
 	}
 	if len(hook.levels) == 0 {
 		hook.levels = logrus.AllLevels
 	}
 
 	return &hook
+}
+
+func NewSentry(interfaces ...raven.Interface) []raven.Interface {
+	return interfaces
+}
+
+func WithStacktrace(skip int, context int, appPackagePrefixes []string) *raven.Stacktrace {
+	return raven.NewStacktrace(skip, context, appPackagePrefixes)
+}
+
+func WithHttpRequest(request *http.Request) *raven.Http {
+	return raven.NewHttp(request)
+}
+
+func WithException(err error, stacktrace *raven.Stacktrace) *raven.Exception {
+	return raven.NewException(err, stacktrace)
+}
+
+func WithUser(id, username, email, ip string) *raven.User {
+	return &raven.User{
+		ID:       id,
+		Username: username,
+		Email:    email,
+		IP:       ip,
+	}
 }
