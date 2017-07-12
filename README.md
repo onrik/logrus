@@ -5,13 +5,15 @@ Example
 package main
 
 import (
+  "net/http"
+  
   "github.com/onrik/logrus/filename"
   "github.com/onrik/logrus/sentry"
   log "github.com/Sirupsen/logrus"
 )
 
 var (
-  dsn := "http://60a0257d7b5a429a8838e5f2ba873ec9:cb785a64cd3649ea987a1f2f5fad5e82@example.com/1"
+  dsn = "http://60a0257d7b5a429a8838e5f2ba873ec9:cb785a64cd3649ea987a1f2f5fad5e82@example.com/1"
 )
 
 func main() {
