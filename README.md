@@ -9,7 +9,7 @@ import (
   
   "github.com/onrik/logrus/filename"
   "github.com/onrik/logrus/sentry"
-  log "github.com/Sirupsen/logrus"
+  log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 
 func main() {
   filenameHook := filename.NewHook()
-  filenameHook.SourceField = "custom_source_field" // Customize source field name
+  filenameHook.Field = "custom_source_field" // Customize source field name
   log.AddHook(filenameHook)
   
   sentryHook := sentry.NewHook(dsn, log.PanicLevel, log.FatalLevel, log.ErrorLevel)
