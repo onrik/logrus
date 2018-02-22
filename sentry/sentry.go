@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
 	"github.com/getsentry/raven-go"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -86,6 +86,8 @@ func NewHook(dsn string, levels ...logrus.Level) *Hook {
 	if err != nil {
 		logrus.WithError(err).Error("Set DSN error")
 	}
+
+	client.Tags = map[string]string{}
 
 	hook := Hook{
 		client:      client,
