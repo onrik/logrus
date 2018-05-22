@@ -53,7 +53,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 		Message:    entry.Message,
 		Level:      levelsMap[entry.Level],
 		Interfaces: interfaces,
-		Extra:      entry.Data,
+		Extra:      raven.Extra(entry.Data),
 		Culprit:    culprit,
 	}
 
