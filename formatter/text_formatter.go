@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -40,6 +41,7 @@ type TextFormatter struct {
 	FormatValue func(value interface{}) string
 }
 
+// New creates new formatter
 func New() *TextFormatter {
 	return &TextFormatter{}
 }
@@ -49,7 +51,7 @@ func (f *TextFormatter) init(entry *logrus.Entry) {
 		f.isTerminal = checkIfTerminal(entry.Logger.Out)
 	}
 	if f.FormatValue == nil {
-		f.FormatValue = f.defaultFormat
+		f.FormatValue = DefaultFormat
 	}
 }
 
@@ -141,19 +143,32 @@ func (f *TextFormatter) appendValue(b *bytes.Buffer, value interface{}) {
 	b.WriteString(f.FormatValue(value))
 }
 
-func (f *TextFormatter) defaultFormat(value interface{}) string {
+// DefaultFormat format value as text with fmt.Sprintf
+func DefaultFormat(value interface{}) string {
 	s, ok := value.(string)
 	if !ok {
 		return fmt.Sprintf("%+v", value)
 	}
 
-	if (f.QuoteEmptyFields && len(s) == 0) || NeedsQuoting(s) {
+	if len(s) == 0 || NeedsQuoting(s) {
 		return fmt.Sprintf("%q", s)
 	}
 
 	return s
 }
 
+// JSONFormat format value as json
+func JSONFormat(value interface{}) string {
+	s, ok := value.(string)
+	if !ok {
+		data, _ := json.Marshal(value)
+		return string(data)
+	}
+
+	return s
+}
+
+// NeedsQuoting checks quoting needed for text
 func NeedsQuoting(text string) bool {
 	for _, ch := range text {
 		if !((ch >= 'a' && ch <= 'z') ||
