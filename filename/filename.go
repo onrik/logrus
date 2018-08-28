@@ -13,6 +13,10 @@ type Hook struct {
 	Skip      int
 	levels    []logrus.Level
 	Formatter func(file, function string, line int) string
+	// ModulesToIgnore allows specifying multiple package to skip
+	// when looking for the correct line up the stack.
+	// Usefult e.g. with a wrapper around logrus.
+	ModulesToIgnore map[string]struct{}
 }
 
 func (hook *Hook) Levels() []logrus.Level {
@@ -20,7 +24,7 @@ func (hook *Hook) Levels() []logrus.Level {
 }
 
 func (hook *Hook) Fire(entry *logrus.Entry) error {
-	entry.Data[hook.Field] = hook.Formatter(findCaller(hook.Skip))
+	entry.Data[hook.Field] = hook.Formatter(findCaller(hook.Skip, hook.ModulesToIgnore))
 	return nil
 }
 
@@ -32,6 +36,7 @@ func NewHook(levels ...logrus.Level) *Hook {
 		Formatter: func(file, function string, line int) string {
 			return fmt.Sprintf("%s:%d", file, line)
 		},
+		ModulesToIgnore: map[string]struct{}{"logrus": struct{}{}},
 	}
 	if len(hook.levels) == 0 {
 		hook.levels = logrus.AllLevels
@@ -40,18 +45,21 @@ func NewHook(levels ...logrus.Level) *Hook {
 	return &hook
 }
 
-func findCaller(skip int) (string, string, int) {
+func findCaller(skip int, modulesToIgnore map[string]struct{}) (string, string, int) {
 	var (
 		pc       uintptr
 		file     string
 		function string
 		line     int
 	)
+
 	for i := 0; i < 10; i++ {
 		pc, file, line = getCaller(skip + i)
-		if !strings.HasPrefix(file, "logrus/") {
-			break
+		module := strings.Split(file, "/")[0]
+		if _, ok := modulesToIgnore[module]; ok {
+			continue
 		}
+		break
 	}
 	if pc != 0 {
 		frames := runtime.CallersFrames([]uintptr{pc})
