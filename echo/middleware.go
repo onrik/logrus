@@ -24,6 +24,7 @@ type Config struct {
 	// - user_agent
 	// - status
 	// - latency
+	// - headers
 	Fields []string
 }
 
@@ -87,6 +88,8 @@ func Middleware(config Config) echo.MiddlewareFunc {
 					fields[field] = res.Status
 				case "latency":
 					fields[field] = stop.Sub(start).String()
+				case "headers":
+					fields[field] = req.Header
 				}
 			}
 
@@ -96,7 +99,7 @@ func Middleware(config Config) echo.MiddlewareFunc {
 			case res.Status >= 400:
 				config.Logger.WithFields(fields).Warnf("%s %s", req.Method, path)
 			default:
-				config.Logger.WithFields(fields).Infof("%s %s", req.Method, path)
+				config.Logger.WithFields(fields).Debugf("%s %s", req.Method, path)
 			}
 
 			return err
