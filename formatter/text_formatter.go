@@ -109,7 +109,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 			f.appendKeyValue(b, key, entry.Data[key])
 		}
 	}
-	if entry.HasCaller() {
+	if entry.HasCaller() && entry.Data["_source"] == nil {
 		f.appendKeyValue(b, f.SourceField, f.FormatCaller(entry.Caller))
 	}
 

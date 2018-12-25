@@ -80,7 +80,7 @@ func (hook *Hook) skipFile(file string) bool {
 
 func NewHook(levels ...logrus.Level) *Hook {
 	hook := Hook{
-		Field:        "source",
+		Field:        "_source",
 		Skip:         5,
 		levels:       levels,
 		SkipPrefixes: []string{"logrus/", "logrus@"},
