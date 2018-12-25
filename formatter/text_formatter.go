@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -21,6 +23,8 @@ const (
 	yellow  = 33
 	blue    = 36
 	gray    = 37
+
+	defaultSourceField = "_source"
 )
 
 const defaultTimestampFormat = time.RFC3339
@@ -36,9 +40,12 @@ func init() {
 // TextFormatter formats logs into text
 type TextFormatter struct {
 	logrus.TextFormatter
-	isTerminal bool
+	isTerminal       bool
+	terminalInitOnce sync.Once
 
-	FormatValue func(value interface{}) string
+	SourceField  string
+	FormatValue  func(value interface{}) string
+	FormatCaller func(caller *runtime.Frame) string
 }
 
 // New creates new formatter
@@ -52,6 +59,12 @@ func (f *TextFormatter) init(entry *logrus.Entry) {
 	}
 	if f.FormatValue == nil {
 		f.FormatValue = DefaultFormat
+	}
+	if f.FormatCaller == nil {
+		f.FormatCaller = CallerFormat
+	}
+	if f.SourceField == "" {
+		f.SourceField = defaultSourceField
 	}
 }
 
@@ -74,7 +87,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 	prefixFieldClashes(entry.Data)
 
-	f.Do(func() { f.init(entry) })
+	f.terminalInitOnce.Do(func() { f.init(entry) })
 
 	isColored := (f.ForceColors || f.isTerminal) && !f.DisableColors
 
@@ -95,6 +108,9 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		for _, key := range keys {
 			f.appendKeyValue(b, key, entry.Data[key])
 		}
+	}
+	if entry.HasCaller() {
+		f.appendKeyValue(b, f.SourceField, f.FormatCaller(entry.Caller))
 	}
 
 	b.WriteByte('\n')
@@ -166,6 +182,13 @@ func JSONFormat(value interface{}) string {
 	}
 
 	return s
+}
+
+// CallerFormat format entry caller as text with fmt.Sprintf
+func CallerFormat(caller *runtime.Frame) string {
+	i := strings.LastIndex(caller.File, "/")
+	i = strings.LastIndex(caller.File[:i], "/")
+	return fmt.Sprintf("%s:%d", caller.File[i+1:], caller.Line)
 }
 
 // NeedsQuoting checks quoting needed for text
