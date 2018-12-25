@@ -26,3 +26,4 @@ _testmain.go
 bin/
 src/
 test/
+pkg/
