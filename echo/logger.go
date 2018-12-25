@@ -54,6 +54,9 @@ func (l *Logger) fields(j log.JSON) (string, logrus.Fields) {
 	return l.Prefix() + msg, logrus.Fields(j)
 }
 
+func (l *Logger) SetHeader(h string) {
+}
+
 func (l *Logger) Output() io.Writer {
 	return l.Out
 }
