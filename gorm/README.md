@@ -1,4 +1,4 @@
-# Hooks for [logrus](https://github.com/Sirupsen/logrus)
+# Logger for [gorm](http://doc.gorm.io/)
 
 Example
 ```go
