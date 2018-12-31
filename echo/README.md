@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-    server = echo.New()
+    server := echo.New()
 
     server.Logger = echolog.NewLogger(logrus.StandardLogger(), "")
     server.Use(echolog.Middleware(echolog.DefaultConfig))
