@@ -18,24 +18,20 @@ var (
 )
 
 type Logger struct {
-	logrus *logrus.Logger
+	logrus logrus.FieldLogger
 }
 
-func New(l *logrus.Logger) *Logger {
+func New(l logrus.FieldLogger) *Logger {
 	return &Logger{l}
 }
 
 func (l *Logger) Print(v ...interface{}) {
-	message, fields := Formatter(v...)
-	l.logrus.WithFields(fields).Debug(message)
+	l.logrus.Debug(Formatter(v...))
 }
 
-var Formatter = func(values ...interface{}) (message interface{}, fields logrus.Fields) {
+var Formatter = func(values ...interface{}) (message interface{}) {
 	if len(values) < 1 {
 		return
-	}
-	fields = logrus.Fields{
-		"_source": formatSource(values[1].(string)),
 	}
 
 	if values[0] == "sql" {
@@ -86,7 +82,7 @@ var Formatter = func(values ...interface{}) (message interface{}, fields logrus.
 			}
 		}
 
-		message = sql
+		message = sql + fmt.Sprintf(" [%s]", values[2])
 	} else {
 		message = values[2]
 	}
