@@ -26,12 +26,21 @@ func New(l logrus.FieldLogger) *Logger {
 }
 
 func (l *Logger) Print(v ...interface{}) {
-	l.logrus.Debug(Formatter(v...))
+	message, fields := Formatter(v...)
+	if v[0] == "sql" {
+		l.logrus.WithFields(fields).WithFields(logrus.Fields{"type": "sql"}).Debug(message)
+	}
+	if v[0] == "log" {
+		l.logrus.WithFields(fields).WithFields(logrus.Fields{"type": "log"}).Debug(message)
+	}
 }
 
-var Formatter = func(values ...interface{}) (message interface{}) {
+var Formatter = func(values ...interface{}) (message interface{}, fields logrus.Fields) {
 	if len(values) < 1 {
 		return
+	}
+	fields = logrus.Fields{
+		"_source": formatSource(values[1].(string)),
 	}
 
 	if values[0] == "sql" {
