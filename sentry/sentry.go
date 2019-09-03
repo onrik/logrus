@@ -78,8 +78,8 @@ func (hook *Hook) SetEnvironment(environment string) {
 	hook.environment = environment
 }
 
-func NewHook(optinos Options, levels ...logrus.Level) (*Hook, error) {
-	client, err := sentry.NewClient(sentry.ClientOptions(optinos))
+func NewHook(options Options, levels ...logrus.Level) (*Hook, error) {
+	client, err := sentry.NewClient(sentry.ClientOptions(options))
 	if err != nil {
 		return nil, err
 	}
