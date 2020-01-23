@@ -26,6 +26,7 @@ type Config struct {
 	// - latency
 	// - headers
 	Fields []string
+	Status int
 }
 
 var (
@@ -34,6 +35,7 @@ var (
 		Logger:  logrus.StandardLogger(),
 		Skipper: func(c echo.Context) bool { return false },
 		Fields:  []string{"ip", "latency", "status"},
+		Status:  0,
 	}
 )
 
@@ -93,6 +95,9 @@ func Middleware(config Config) echo.MiddlewareFunc {
 				}
 			}
 
+			if res.Status < config.Status {
+				return
+			}
 			switch {
 			case res.Status >= 500:
 				config.Logger.WithFields(fields).Errorf("%s %s", req.Method, path)
@@ -102,7 +107,7 @@ func Middleware(config Config) echo.MiddlewareFunc {
 				config.Logger.WithFields(fields).Debugf("%s %s", req.Method, path)
 			}
 
-			return err
+			return
 		}
 	}
 }
