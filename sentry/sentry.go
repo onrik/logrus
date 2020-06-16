@@ -25,6 +25,7 @@ type Hook struct {
 	tags        map[string]string
 	release     string
 	environment string
+	prefix      string
 }
 
 func (hook *Hook) Levels() []logrus.Level {
@@ -48,7 +49,7 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 
 	event := sentry.Event{
 		Level:       levelsMap[entry.Level],
-		Message:     entry.Message,
+		Message:     hook.prefix + entry.Message,
 		Extra:       map[string]interface{}(entry.Data),
 		Tags:        hook.tags,
 		Environment: hook.environment,
@@ -60,6 +61,10 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 	hook.client.CaptureEvent(&event, nil, hub.Scope())
 
 	return nil
+}
+
+func (hook *Hook) SetPrefix(prefix string) {
+	hook.prefix = prefix
 }
 
 func (hook *Hook) SetTags(tags map[string]string) {
