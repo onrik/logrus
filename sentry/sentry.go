@@ -83,6 +83,10 @@ func (hook *Hook) SetEnvironment(environment string) {
 	hook.environment = environment
 }
 
+func (hook *Hook) Flush(timeout time.Duration) {
+	hook.client.Flush(timeout)
+}
+
 func NewHook(options Options, levels ...logrus.Level) (*Hook, error) {
 	client, err := sentry.NewClient(sentry.ClientOptions(options))
 	if err != nil {
