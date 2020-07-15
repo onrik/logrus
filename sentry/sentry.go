@@ -2,7 +2,7 @@ package sentry
 
 import (
 	"time"
-	
+
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
@@ -101,9 +101,10 @@ func NewHook(options Options, levels ...logrus.Level) (*Hook, error) {
 	}
 
 	hook := Hook{
-		client: client,
-		levels: levels,
-		tags:   map[string]string{},
+		client:       client,
+		levels:       levels,
+		tags:         map[string]string{},
+		flushTimeout: 10 * time.Second,
 	}
 	if len(hook.levels) == 0 {
 		hook.levels = logrus.AllLevels
