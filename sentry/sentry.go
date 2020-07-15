@@ -22,12 +22,13 @@ var (
 type Options sentry.ClientOptions
 
 type Hook struct {
-	client      *sentry.Client
-	levels      []logrus.Level
-	tags        map[string]string
-	release     string
-	environment string
-	prefix      string
+	client       *sentry.Client
+	levels       []logrus.Level
+	tags         map[string]string
+	release      string
+	environment  string
+	prefix       string
+	flushTimeout time.Duration
 }
 
 func (hook *Hook) Levels() []logrus.Level {
@@ -85,8 +86,12 @@ func (hook *Hook) SetEnvironment(environment string) {
 	hook.environment = environment
 }
 
-func (hook *Hook) Flush(timeout time.Duration) {
-	hook.client.Flush(timeout)
+func (hook *Hook) SetFlushTimeout(timeout time.Duration) {
+	hook.flushTimeout = timeout
+}
+
+func (hook *Hook) Flush() {
+	hook.client.Flush(flushTimeout)
 }
 
 func NewHook(options Options, levels ...logrus.Level) (*Hook, error) {
