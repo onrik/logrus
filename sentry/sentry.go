@@ -91,7 +91,7 @@ func (hook *Hook) SetFlushTimeout(timeout time.Duration) {
 }
 
 func (hook *Hook) Flush() {
-	hook.client.Flush(flushTimeout)
+	hook.client.Flush(hook.flushTimeout)
 }
 
 func NewHook(options Options, levels ...logrus.Level) (*Hook, error) {
