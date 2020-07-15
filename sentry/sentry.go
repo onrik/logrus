@@ -1,6 +1,8 @@
 package sentry
 
 import (
+	"time"
+
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
@@ -20,12 +22,13 @@ var (
 type Options sentry.ClientOptions
 
 type Hook struct {
-	client      *sentry.Client
-	levels      []logrus.Level
-	tags        map[string]string
-	release     string
-	environment string
-	prefix      string
+	client       *sentry.Client
+	levels       []logrus.Level
+	tags         map[string]string
+	release      string
+	environment  string
+	prefix       string
+	flushTimeout time.Duration
 }
 
 func (hook *Hook) Levels() []logrus.Level {
@@ -83,6 +86,14 @@ func (hook *Hook) SetEnvironment(environment string) {
 	hook.environment = environment
 }
 
+func (hook *Hook) SetFlushTimeout(timeout time.Duration) {
+	hook.flushTimeout = timeout
+}
+
+func (hook *Hook) Flush() {
+	hook.client.Flush(hook.flushTimeout)
+}
+
 func NewHook(options Options, levels ...logrus.Level) (*Hook, error) {
 	client, err := sentry.NewClient(sentry.ClientOptions(options))
 	if err != nil {
@@ -90,9 +101,10 @@ func NewHook(options Options, levels ...logrus.Level) (*Hook, error) {
 	}
 
 	hook := Hook{
-		client: client,
-		levels: levels,
-		tags:   map[string]string{},
+		client:       client,
+		levels:       levels,
+		tags:         map[string]string{},
+		flushTimeout: 10 * time.Second,
 	}
 	if len(hook.levels) == 0 {
 		hook.levels = logrus.AllLevels
