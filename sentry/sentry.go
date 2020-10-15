@@ -63,6 +63,10 @@ func (hook *Hook) Fire(entry *logrus.Entry) error {
 	hub := sentry.CurrentHub()
 	hook.client.CaptureEvent(&event, nil, hub.Scope())
 
+	if entry.Level == logrus.PanicLevel || entry.Level == logrus.FatalLevel {
+		hook.Flush()
+	}
+
 	return nil
 }
 
