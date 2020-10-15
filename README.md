@@ -7,8 +7,8 @@ package main
 import (
   "net/http"
   
-  "github.com/onrik/logrus/filename"
-  "github.com/onrik/logrus/sentry"
+  "github.com/Decentr-net/logrus/filename"
+  "github.com/Decentr-net/logrus/sentry"
   log "github.com/sirupsen/logrus"
 )
 
