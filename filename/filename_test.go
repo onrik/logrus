@@ -22,6 +22,6 @@ func TestFilenameHook(t *testing.T) {
 	require.NotEqual(t, "", buff.String())
 	require.Equal(t,
 		"filename/filename_test.go:20",
-		gjson.Get(buff.String(), DefaultField).Str,
+		gjson.Get(buff.String(), "_source").Str,
 	)
 }
