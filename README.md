@@ -1,6 +1,7 @@
 # Hooks for [logrus](https://github.com/Sirupsen/logrus)
 
-Example
+## Example
+
 ```go
 package main
 
@@ -23,16 +24,16 @@ func main() {
 
     sentryHook, err := sentry.NewHook(sentry.Options{
         Dsn: dsn,
-    })
+    }, log.PanicLevel, log.FatalLevel, log.ErrorLevel)
     if err != nil {
         log.Error(err)
         return
     }
-    log.AddHook(sentryHook, log.PanicLevel, log.FatalLevel, log.ErrorLevel)
+    defer sentryHook.Flush()
+    
+    log.AddHook(sentryHook)
 
     err = fmt.Errorf("test error")
     log.WithError(err).Error("Dead beef")
 }
-
-
 ```
