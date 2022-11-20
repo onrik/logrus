@@ -62,7 +62,7 @@ func (l *Logger) Output() io.Writer {
 }
 
 func (l *Logger) SetOutput(w io.Writer) {
-	l.SetOutput(w)
+	l.Logger.SetOutput(w)
 }
 
 func (l *Logger) Prefix() string {
