@@ -34,7 +34,7 @@ var Formatter = func(values ...interface{}) (message interface{}) {
 		return
 	}
 
-	if values[0] == "sql" {
+	if values[0] == "sql" && len(values) >= 5 {
 		formattedValues := []string{}
 
 		for _, value := range values[4].([]interface{}) {
