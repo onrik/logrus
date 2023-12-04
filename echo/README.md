@@ -6,7 +6,7 @@ package main
 
 import (
     "github.com/labstack/echo/v4"
-    echolog "github.com/onrik/logrus/echo"
+    echolog "github.com/pilinux/logrus/echo"
     "github.com/sirupsen/logrus"
 )
 

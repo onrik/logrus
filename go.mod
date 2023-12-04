@@ -1,4 +1,4 @@
-module github.com/onrik/logrus
+module github.com/pilinux/logrus
 
 go 1.20
 

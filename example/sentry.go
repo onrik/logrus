@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/onrik/logrus/sentry"
+	"github.com/pilinux/logrus/sentry"
 	log "github.com/sirupsen/logrus"
 )
 

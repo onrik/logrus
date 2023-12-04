@@ -6,7 +6,7 @@ package main
 
 import (
     "github.com/jinzhu/gorm"
-    gormlog "github.com/onrik/logrus/gorm"
+    gormlog "github.com/pilinux/logrus/gorm"
     "github.com/sirupsen/logrus"
 )
 
