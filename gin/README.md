@@ -6,7 +6,7 @@ package main
 
 import (
     "github.com/gin-gonic/gin"
-    ginlog "github.com/onrik/logrus/gin"
+    ginlog "github.com/pilinux/logrus/gin"
     "github.com/sirupsen/logrus"
 )
 
